@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 const String _defaultApiUrl = 'http://127.0.0.1:8000/api/predict/';
-
 String getApiUrl() {
   const String envUrl = String.fromEnvironment('API_URL');
   if (envUrl.isNotEmpty) {
@@ -13,9 +12,19 @@ String getApiUrl() {
 
   if (kIsWeb) {
     final Uri base = Uri.base;
-    if (base.host != 'localhost' && base.host != '127.0.0.1') {
-      return '${base.scheme}://${base.host}:8000/api/predict/';
+    if (base.host == 'localhost' || base.host == '127.0.0.1') {
+      return _defaultApiUrl;
     }
+
+    if (base.host.contains('.github.dev')) {
+      final String host = base.host.replaceFirst(
+        RegExp(r'-\d+\.app\.github\.dev$'),
+        '-8000.app.github.dev',
+      );
+      return '${base.scheme}://$host/api/predict/';
+    }
+
+    return '${base.scheme}://${base.host}:8000/api/predict/';
   }
 
   return _defaultApiUrl;
